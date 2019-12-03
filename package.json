@@ -84,9 +84,8 @@
         "repo": "julyplayer",
         "owner": "Falshlight",
         "releaseType": "release"
-      }, "win": {"target": "nsis"},
+      }], "win": {"target": "nsis"},
       "linux": {"target": "appimage"}
-    ]
   },
   "repository": {
     "type": "git",
