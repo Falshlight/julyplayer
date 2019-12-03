@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "easyvk": "^2.5.1",
-    "electron-compile": "^6.4.4",
+   "electron-compile": "^6.4.4",
     "electron-localshortcut": "^3.2.1",
     "electron-squirrel-startup": "^1.0.0",
     "electron-tray-window": "^1.2.5",
@@ -84,7 +84,8 @@
         "repo": "julyplayer",
         "owner": "Falshlight",
         "releaseType": "release"
-      }
+      }, "win": {"target": "nsis"},
+      "linux": {"target": "appimage"}
     ]
   },
   "repository": {
