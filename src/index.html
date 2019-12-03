@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="./main.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link href="./fa/css/fontawesome.css" rel="stylesheet">
+    <link href="./fa/css/brands.css" rel="stylesheet">
+    <link href="./fa/css/solid.css" rel="stylesheet">
+    <title></title>
+  </head>
+  <body>
+
+    <div class="main-row">
+      <div class="services-column column" style="margin-right: -4px;">
+        <div class="service-button service-active" service="vk" service-color="#5080b8" style="border-right: 2px solid #5080b8;"><img src="img/vk.png"></div>
+        <div class="service-button" service="ym" service-color="#fecc0b"><img src="img/ym.png"> </div>
+        <div class="service-button" service="am" service-color="#000"><img src="img/am.png"> </div>
+      </div>
+      <div class="screen-column column" style="margin-right: -4px;">
+
+        <div class="screen" id="vk-screen"><p class="central-message">Загрузка...</p></div>
+
+        <div class="screen" id="ym-screen" style="display: none"><p class="central-message">Загрузка...</p></div>
+
+        <div class="screen" id="am-screen" style="display: none"><p class="central-message">Загрузка...</p></div>
+
+      </div>
+      <div class="queue-column column" >
+        <div class="queue">
+        <p class="central-message" id="queue-message">Очередь пуста</p>
+        </div>
+        <div class="queue-buttons">
+          <button onclick="queue_repeat()" id="queue-repeat-button"><i class="fa fa-repeat"></i></button>
+          <button onclick="queue_shuffle()"><i class="fa fa-random"></i></button>
+          <button onclick="queue_clear(true)" ><i class="fa fa-empty-set"></i></button>
+        </div>
+      </div>
+
+      </div>
+    </div>
+    <div class="bottom-row">
+      <div class="footer">
+        <div class="footer-container">
+          <div class="thumbnail">
+            <img src="img/default_cover.jpeg" id="cs-thumbnail">
+          </div>
+          <div class="current-song-div">
+            <div class="current-song-container">
+              <h1 id="cs-title">Ничего не играет</h1>
+              <div class="current-song-timeline-container">
+                <p class="current-song-label" id="cs-song-ct">00:00</p>
+                <input disabled type="range" min="0" max="200" value="0" class="slider" id="cs-timeline">
+                <p class="current-song-label" id="cs-song-duration">00:00</p>
+              </div>
+              <div class="current-song-buttons-container">
+                <div class="current-song-buttons">
+                  <button onclick="backward()" disabled id="backward-button"><i class="fa fa-backward"></i></button>
+                  <button id="audio-control" onclick="toggle_audio()" disabled><i class="fa fa-play"></i></button>
+                  <button onclick="forward()" disabled id="forward-button"><i class="fa fa-forward"></i></button>
+                </div>
+                <div class="volume-container">
+                  <button class="volume" onclick="toggle_volume()"><i class="fa fa-volume"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="volume-slider" style="display: none"><input type="range" min="0" max="100" value="50" class="slider vertical-slider" id="volume"></div>
+
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.1/howler.min.js"></script>
+
+    <script>
+      var track_template = `<div class="track" service="{6}" tid="{0}" seconds-duration="{4}">
+    <div class="track-body">
+        <img class="track-cover" src="{5}">
+        <div class="track-title">
+            <h2>{1}</h2>
+            <h3>{2}</h3>
+        </div>
+        <div class="track-duration">{3}</div>
+    </div>
+    <div class="track-buttons">
+        <button class="track-button" onclick="add_track($(this).parent().parent());"><i class="fas fa-plus"></i></button>
+    </div>
+</div>`;
+      var playlist_template = `<div class="playlist" pid="{0}" service="{5}" description="{4}">
+<div class="playlist-cover-container">{1}
+<div class="playlist-overlay">
+    <button onclick="load_playlist($(this).parent().parent().parent(), false)" class="playlist-play-button"><i class="fas fa-play"></i></button>
+</div>
+</div>
+<h2>{2}</h2>
+<div class="playlist-buttons">
+    <button onclick="load_playlist($(this).parent().parent(), false)" class="track-button"><i class="fas fa-play"></i></button>
+    <button onclick="add_playlist($(this).parent().parent())" class="track-button"><i class="fas fa-plus"></i></button>
+    <button onclick="load_playlist($(this).parent().parent(), true)" class="track-button"><i class="fas fa-random"></i></button>
+    <button onclick="show_playlist($(this).parent().parent())" class="track-button"><i class="fas fa-list"></i></button>
+</div>
+<p>Треков: {3}</p>
+</div>`;
+    </script>
+    <script>
+
+    // Работа с плеером, загрузкой и основными функциями приложения
+    let current_index = 0;
+    let sound = null;
+    let timer = null;
+
+    const fs = require("fs");
+    import { checkServices, loadService, ServiceLogin } from './service.js';
+    import { VkWorker } from './vkworker.js';
+    import { YmWorker } from './ymworker.js';
+
+    var serviceLogin = new ServiceLogin();
+    var vkw = new VkWorker();
+    var ymw = new YmWorker();
+
+    $(".queue").sortable({
+      delay: 150,
+      update: function( event, ui ) {
+        var el = $(ui.item);
+        var ind = [...el.get(0).parentElement.children].indexOf(el.get(0));
+        if (ind < current_index && !el.hasClass('queue-track-listened') && !el.hasClass('queue-track-current')) {
+          current_index += 1;
+          repaint_queue();
+        } else if (el.hasClass('queue-track-listened') && ind >= current_index) {
+          current_index -= 1;
+          repaint_queue();
+        } else if (el.hasClass('queue-track-current')) {
+          current_index = ind;
+          repaint_queue();
+        }
+      }
+    });
+
+    function set_tray(index, value) {
+      return 1;
+      //trayTemplate[index].label=value;
+      //tray.setContextMenu(electron.Menu.buildFromTemplate(trayTemplate));
+    }
+
+    function toggle_volume() {
+      var v = $('.volume-slider');
+      if (v.css('display') === 'none') {
+        v.css('display', 'block');
+        var offset = $(".volume").offset();
+        v.css('left', offset.left+'px');
+        v.css('top', (offset.top - 125)+'px');
+        v.css('width', $(".volume").width()+'px');
+      } else {
+        v.css('display', 'none');
+      }
+    }
+
+    function update_range_back(e) {
+      var val = (e.val() - e.attr('min')) / (e.attr('max') - e.attr('min'));
+      e.css('background-image',
+              '-webkit-gradient(linear, left top, right top, '
+              + 'color-stop(' + val + ', #000000), '
+              + 'color-stop(' + val + ', #989898)'
+              + ')'
+      );
+    }
+    update_range_back($("#volume"));
+
+    window.onload = function() {
+      $('#cs-timeline').change(function () {
+                update_range_back($(this));
+                if (sound) sound.seek($(this).val());
+              });
+      $('#volume').change(function () {
+        update_range_back($(this));
+        if (sound) sound.volume($(this).val() / 100);
+      });
+
+    $(".service-button").click(function () {
+      $(".service-active").css('border-right', 'none');
+      var csn = $(".service-active").attr('service');
+      $(".service-active").removeClass('service-active');
+      $(this).addClass("service-active");
+      $(this).css('border-right', '2px solid '+$(this).attr('service-color'));
+      $('#' + csn + '-screen').css('display', 'none');
+      $('#' + $(this).attr('service') + '-screen').css('display', 'block');
+    });
+      setTimeout(checkServices, 1);
+    };
+
+    var queue_template = `<div class="queue-track" service="{0}" tid="{1}" duration="{2}" cover="{3}" uid="{5}" onclick="play_by_click(this)">
+    <h1>{4}</h1>
+    <div class="queue-track-buttons">
+    <button class="queue-delete-track" onclick="delete_track(this)">&times;</button>
+</div>
+</div>`;
+
+    function play_by_click(el) {
+      if (!$(el).find("button:hover").length && el.parentElement) {
+          if (sound) sound.stop();
+          sound = null;
+          clearInterval(timer);
+          timer = null;
+          current_index = [...el.parentElement.children].indexOf(el);
+          repaint_queue();
+          check_player();
+      }
+    }
+
+  function add_to_queue(data, call_check) {
+    var uid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    var q = queue_template.format(data.service, data.tid, data.duration, data.cover, data.title, uid);
+    $("#queue-message").remove();
+    $(".queue").append(q);
+    if (call_check) check_player();
+  }
+
+  var workers = {'vk': vkw, 'ym': ymw};
+
+  function check_player() {
+    if (!sound || sound.ended) {
+      var current = $(".queue-track")[current_index];
+      if (current) {
+        current = $(current);
+        var s = current.attr('service');
+
+        var w = workers[s];
+        w.constructor.recover(current.attr('uid'), current.attr('tid'), function (uid, tid, url) {
+          var c = $(".queue-track")[current_index];
+          if ($(c).attr('uid') === uid) set_track(uid, tid, url);
+        });
+      } else {
+        if ($("#queue-repeat-button").attr('act') === '1' && (".queue-track").length) {
+          current_index = 0;
+          return check_player();
+        }
+
+        $("#cs-title").text('Ничего не играет');
+        $("#cs-timeline").prop('disabled', true).attr('max', 200);
+        $("#cs-thumbnail").attr('src', 'img/default_cover.jpeg');
+        $("#cs-song-duration").text('00:00');
+        $(".current-song-buttons button").prop('disabled', true);
+        $(".volume-container button").prop('disabled', true);
+        $("#cs-song-ct").text('00:00');
+        $("#cs-timeline").val(0);
+        update_range_back($("#cs-timeline"));
+
+        set_tray(2, 'Ничего не играет');
+      }
+    }
+  }
+
+  function get_time(dur) {
+    dur = parseInt(Math.floor(dur));
+    var time = new Date(dur).toISOString().substr(11, 8);
+    if (time.startsWith("00:")) time = new Date(dur * 1000).toISOString().substr(14, 5);
+    return time;
+  }
+
+  function update_slider() {
+    var ct = sound.seek();
+    $("#cs-song-ct").text(get_time(ct));
+    $("#cs-timeline").val(ct);
+    update_range_back($("#cs-timeline"));
+  }
+
+  function set_track(uid, tid, url) {
+    var track = $(".queue-track[uid='"+uid+"']");
+    var dur = track.attr('duration');
+    var time = get_time(dur);
+
+    $("#cs-title").text(track.find('h1').text());
+    $("#cs-timeline").prop('disabled', false).attr('max', dur);
+    $("#cs-thumbnail").attr('src', track.attr('cover'));
+    $("#cs-song-duration").text(time);
+    $(".current-song-buttons button").prop('disabled', false);
+    $(".volume-container button").prop('disabled', false);
+
+    if (current_index === 0) $("#backward-button").prop('disabled', true);
+
+    track.addClass('queue-track-current');
+    track.find('.queue-track-buttons').html(`<button class="queue-current-repeat" onclick="repeat_track(this)" style="font-size: 16px;"><i class="fa fa-repeat"></i></button>`);
+
+
+
+    if (timer) clearInterval(timer);
+    timer = setInterval(update_slider, 750);
+
+    sound = new Howl({
+      src: [url],
+      html5: true,
+      volume: $("#volume").val() / 100,
+      onplay: function () {
+        var c = $(".queue-track")[current_index];
+        if ($(c).attr('uid') !== uid) {
+          console.log('stop');
+          try {
+            this.stop();
+          } catch (e) {
+            sound.stop();
+          }
+        } else {
+	    new window.Notification('Сейчас играет', {'body': $("#cs-title").text(), icon: $("#cs-thumbnail").attr('src')});
+	}
+      },
+      onend: function () {
+        if (sound.repeat) {
+          sound.seek(0);
+          sound.play();
+          return;
+        }
+
+        sound.ended = true;
+        current_index += 1;
+        clearInterval(timer);
+        timer = null;
+        track.removeClass('queue-track-current');
+        repaint_queue();
+        check_player();
+
+      },
+      onloaderror: function (err) {
+        console.log(err);
+      },
+      onplayerror: function (err) {
+        console.log(err);
+      }
+    });
+    var c = $(".queue-track")[current_index];
+    if ($(c).attr('uid') === uid) sound.play();
+    $("#audio-control").html(`<i class="fa fa-pause"></i>`);
+  }
+
+  function repaint_queue() {
+    var tracks = $(".queue-track");
+    var painting_prev = true;
+    $('.queue-track-buttons').html(`<button class="queue-delete-track" onclick="delete_track(this)">&times;</button>`);
+    for (var i = 0; i < tracks.length; i++) {
+      var t = $(tracks[i]);
+      t.removeClass('queue-track-listened').removeClass('queue-track-current');
+      if (i === current_index) {
+        painting_prev = false;
+        t.addClass('queue-track-current');
+        t.find('.queue-track-buttons').html(`<button class="queue-current-repeat" onclick="repeat_track(this)"><i class="fa fa-repeat" style="width: 16px;"></i></button>`);
+      }
+      else if (painting_prev) {
+        t.addClass('queue-track-listened');
+      }
+    }
+  }
+
+  function toggle_audio() {
+    if (!sound) return;
+    if (!sound.playing()) {
+      sound.play();
+      $("#audio-control").html(`<i class="fa fa-pause"></i>`);
+    } else {
+      sound.pause();
+      $("#audio-control").html(`<i class="fa fa-play"></i>`);
+    }
+  }
+
+  function forward() {
+    if ($("#forward-button").prop('disabled')) return;
+    if (sound) sound.stop();
+    sound = null;
+    current_index += 1;
+    clearInterval(timer);
+    timer = null;
+    $(".queue-track-current").removeClass('queue-track-current');
+    repaint_queue();
+    check_player();
+  }
+
+  function backward() {
+    if ($("#backward-button").prop('disabled')) return;
+    if (sound) sound.stop();
+    sound = null;
+    current_index -= 1;
+    clearInterval(timer);
+    timer = null;
+    $(".queue-track-current").removeClass('queue-track-current');
+    repaint_queue();
+    check_player();
+  }
+
+  function delete_track(el) {
+    var t = $(el).parent().parent();
+    if (t.hasClass('queue-track-listened')) {
+      current_index -= 1;
+      console.log(current_index);
+    }
+    t.remove();
+  }
+
+  function repeat_track(el) {
+    var t = $(el).parent().parent();
+    if (sound.repeat) {
+      sound.repeat = false;
+      $(el).attr('act', '0');
+    } else {
+      sound.repeat = true;
+      $(el).attr('act', '1');
+    }
+  }
+
+  </script>
+
+
+  <script>
+    // Работа с очередью и загрузка треков
+ 
+    function do_shuffle(array) {
+      array.sort(() => Math.random() - 0.5);
+    }
+
+    function queue_shuffle() {
+      var q = $(".queue-track");
+      var current = $(q.splice(current_index, 1));
+      do_shuffle(q);
+      $('.queue').empty();
+
+      $('.queue').append(current);
+      current_index = 0;
+      for (var i = 0; i < q.length; i++) {
+        $(".queue").append(q[i]);
+      }
+
+      repaint_queue();
+      check_player();
+    }
+
+    function queue_clear(add_message=false) {
+      if (sound) sound.stop();
+      clearInterval(timer);
+      timer = null;
+      sound = null;
+      current_index = 0;
+      $('.queue').empty();
+      if (add_message) {
+        $('.queue').html(`<p class="central-message" id="queue-message">Очередь пуста</p>`);
+        check_player();
+      }
+    }
+
+    function queue_repeat() {
+      if ($('#queue-repeat-button').attr('act') === '0') $('#queue-repeat-button').attr('act', '1');
+      else $('#queue-repeat-button').attr('act', '0');
+    }
+
+    function add_track(track, call_check=true) {
+      var tid = $(track).attr('tid');
+      var data = {tid: tid, service: $(track).attr('service')};
+      var e = $(".track[tid='"+tid+"']");
+      e = $(e[e.length-1]);
+      data.duration = parseInt(e.attr('seconds-duration'));
+      data.title = e.find('.track-title h3').text() + ' - ' + e.find('.track-title h2').text();
+      data.cover = e.find('.track-cover').attr('src');
+      add_to_queue(data, call_check);
+    }
+
+    function load_tracks(track, set_index=0, shuffle=false) {
+      // load tracks as playlist
+      queue_clear();
+      current_index = set_index;
+
+      var list = $(track).parent().find('.track');
+      if (shuffle) do_shuffle(list);
+      for (var i = 0; i < list.length; i++) {
+        add_track(list[i], false);
+      }
+      repaint_queue();
+      check_player();
+    }
+
+    function add_tracks(track, shuffle=false) {
+      var list = $(track).parent().find('.track');
+      if (shuffle) do_shuffle(list);
+      for (var i = 0; i < list.length; i++) {
+        add_track(list[i], false);
+      }
+      repaint_queue();
+      check_player();
+    }
+
+    function load_playlist(ple, shuffle=false, clear=true) {
+      var pl = $(ple);
+      var pid = pl.attr('pid');
+      var service = pl.attr('service');
+
+      var w = workers[service];
+      w.constructor.get_playlist(pid, function(pid, songs) {
+          if (clear) queue_clear();
+          var list = songs;
+          if (shuffle) do_shuffle(list);
+          $("body").append(`<div id='d' style="display: none"></div>`);
+
+          var cover = $(".playlist[pid='"+pid+"']").find('img').attr('src');
+          for (var i = 0; i < list.length; i++) {
+            var t = w.constructor.get_template_from_song(list[i], cover);
+            $('#d').html(t);
+            add_track($("#d").find('.track'), false);
+          }
+          $("#d").remove();
+          repaint_queue();
+          check_player();
+        });
+    }
+
+    function add_playlist(ple, shuffle = false) {
+      load_playlist(ple, shuffle, false);
+    }
+
+    function set_track_events(tid) {
+      $(".track[tid='"+tid+"']").hover(function () {
+        $(this).find('.track-duration').css('display', 'none');
+        $(this).find('.track-buttons').css('display', 'block');
+      }, function () {
+        $(this).find('.track-duration').css('display', 'block');
+        $(this).find('.track-buttons').css('display', 'none');
+      }).click(function () {
+        if (!$(".track-button:hover").length) load_tracks(this, [...this.parentElement.children].indexOf(this));
+      });
+    }
+
+    var playlist_viewer_template = `<div class='plv-back' id="plv">
+<div class="plv-container">
+    <div class="plv-top">
+        {2}
+        <div class="plv-texts">
+            <h1 class="plv-title">{3}</h1>
+            <h1 class="plv-description">{4}</h1>
+        </div>
+        <button class="plv-close" onclick="plv_close();">&times;</button>
+    </div>
+    <div class="plv-tracks"></div>
+    <div class="plv-buttons" pid="{0}" service="{1}">
+        <button onclick="load_playlist($(this).parent(), false); plv_close();" class="track-button"><i class="fas fa-play"></i></button>
+        <button onclick="add_playlist($(this).parent()); plv_close();" class="track-button"><i class="fas fa-plus"></i></button>
+        <button onclick="load_playlist($(this).parent(), true); plv_close();" class="track-button"><i class="fas fa-random"></i></button>
+</div>
+</div>
+</div>`;
+
+    // Работа со всплывающим плейлистом
+ 
+    function plv_close() {
+      $("#plv").remove();
+    }
+
+    function show_playlist_callback(pid, songs) {
+      plv_close();
+      var pl = $(".playlist[pid='"+pid+"']")[0];
+      pl = $(pl);
+      var cover = pl.find('img').clone();
+      cover.addClass('plv-thumb');
+      var t = playlist_viewer_template.format(pid, pl.attr('service'), cover.get(0).outerHTML, pl.find('h2').text(), pl.attr('description'));
+      $("body").append(t);
+
+      var list = songs;
+      var w = workers[pl.attr('service')];
+
+      var cover = pl.find('img').attr('src');
+      for (var i = 0; i < list.length; i++) {
+        var t = w.constructor.get_template_from_song(list[i], cover);
+        $('.plv-tracks').append(t);
+        $('.plv-tracks > *:last-child').hover(function () {
+          $(this).find('.track-duration').css('display', 'none');
+          $(this).find('.track-buttons').css('display', 'block');
+        }, function () {
+          $(this).find('.track-duration').css('display', 'block');
+          $(this).find('.track-buttons').css('display', 'none');
+        }).click(function () {
+          if (!$(".track-button:hover").length) load_tracks(this, [...this.parentElement.children].indexOf(this));
+        });
+      }
+
+    }
+
+    function show_playlist(ple) {
+      var pl = $(ple);
+      var pid = pl.attr('pid');
+      var service = pl.attr('service');
+
+      var w = workers[service];
+      w.constructor.get_playlist(pid, function(pid, songs) {
+          show_playlist_callback(pid, songs);
+      });
+    }
+  </script>
+
+  </body>
+</html>

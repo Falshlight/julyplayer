@@ -1,0 +1,792 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial;
+}
+
+.main-row {
+
+    height: calc(100% - 101px);
+    width: 100%;
+}
+
+.current-song-label {
+    margin: 0;
+}
+
+.bottom-row {
+    border-top: 1px solid black;
+    width: 100%;
+}
+
+.bottom-row, .footer, .footer-container {
+    height: 100px;
+    text-align: center;
+}
+
+.thumbnail img {
+    width: 80px;
+    margin-top: 10px;
+    height: 80px;
+    border-radius: 15px;
+    box-shadow: 0 0 10px 1px black;
+}
+
+.thumbnail {
+    margin-left: -170px;
+}
+
+.thumbnail, .current-song-div {
+    display: inline;
+}
+
+.current-song-div, .current-song-container {
+    width: 350px;
+    height: 100px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.current-song-container {
+    box-shadow: 0 0 10px 1px black;
+    border-radius: 15px;
+    margin: 10px 20px;
+    height: 80px;
+    padding: 0 25px;
+}
+
+#cs-title {
+    font-size: 20px;
+    margin: 0;
+    max-width: 350px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#cs-title:hover {
+    overflow: visible;
+}
+
+.current-song-timeline-container * {
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.current-song-buttons-container div {
+    display: inline;
+}
+
+.current-song-buttons {
+    margin-right: -30px;
+}
+
+.volume-container {
+    float: right;
+}
+
+#cs-timeline {
+    width: 60%;
+}
+
+
+input[type=range] {
+    -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+    width: 100%; /* Specific width is required for Firefox. */
+    background-image: -webkit-gradient(
+            linear,
+            left top,
+            right top,
+            color-stop(0, #000000),
+            color-stop(0, #989898)
+    );
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+}
+
+input[type=range]:focus {
+    outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+}
+
+
+/* Special styling for WebKit/Blink */
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: 1px solid #000000;
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    background: #000000;
+    cursor: pointer;
+    margin-top: -4px;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 2px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.vertical-slider {
+    position: absolute;
+    top: 54px;
+    left: -38px;
+    transform: rotate(-90deg);
+    -webkit-appearance: slider-vertical;
+    height: 2px;
+    width: 100px!important;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.volume-slider {
+    position: absolute;
+    height: 100px;
+    padding: 5px;
+    z-index: 1111111;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 0 5px 0;
+}
+
+button {
+    text-align: center;
+    vertical-align: middle;
+    font-size: 18px;
+    outline: none;
+    background: transparent;
+    border: none;
+    color: gray;
+    border-radius: 10px;
+    transition: 0.25s background, 0.25s border-color, 0.25s box-shadow, 0.25s color;
+}
+
+button:hover:enabled {
+    color: black;
+}
+
+.services-column {
+    width: 70px;
+    border-right: 1px solid black;
+    margin-right: -4px;
+}
+
+.screen-column {
+    width: 70%;
+}
+
+.queue-column {
+    width: calc(30% - 73px);
+    border-left: 1px solid black;
+    float: right;
+
+}
+
+.queue {
+    overflow-y: auto;
+    height: calc(100% - 35px);
+}
+
+.queue-buttons {
+    box-shadow: 0 0 5px 0;
+    height: 35px;
+    width: 100%;
+    z-index: 1000;
+}
+
+.queue-buttons button {
+    margin-top: 7px;
+}
+
+.services-column, .screen-column, .queue-column {
+    height: 100%;
+    backgrounfd: red;
+    display: inline-block;
+    vertical-align: top;
+    margin: 0;
+}
+
+.service-button {
+    width: 100%;
+    border-bottom: 1px solid #cccccc;
+    box-shadow: -1px 1px 5px 1px #b7b7b7;
+    padding: 10px 0;
+    text-align: center;
+    transition: 0.25s background;
+}
+
+.service-button img {
+    width: 50px;
+    height: 50px;
+}
+
+.service-button:hover {
+    background: #f1f1f1;
+}
+
+.service-active {
+
+}
+
+.service-button:active { background: #dedede}
+
+.central-message {
+    text-align: center;
+    position: absolute;
+    bottom: 50%;
+    width: 100%;
+    color: gray;
+    user-select: none;
+}
+
+.column {
+    position: relative;
+}
+
+.screen {
+    text-align: center;
+}
+
+.auth-div {
+    display: inline-block;
+    margin-top: 50px;
+    width: 50%;
+}
+
+.auth-button {
+    border: 1px solid;
+    border-radius: 15px;
+    display: block;
+    width: 100%;
+    padding: 15px 0;
+    margin-top: 25px;
+    transition: 0.25s background, 0.25s color;
+    color: black;
+}
+
+.vk-hover-back:hover:enabled {
+    background: #5080b8;
+    color: white;
+}
+
+.am-hover-back:hover:enabled {
+    background: #000;
+    color: white;
+}
+
+.ym-hover-back:hover:enabled {
+    background: #fecc0b;
+}
+
+.auth-error-button:hover:enabled {
+    background: #FF265E;
+}
+
+.auth-inputs {
+    text-align: left;
+}
+
+.auth-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #b7b7b7;
+    font-size: 16px;
+    outline: none;
+    padding: 10px 5px;
+    transition: 0.2s border;
+}
+
+.auth-input:hover {
+    border-bottom: 1px solid black;
+}
+
+.auth-input:focus {
+    border-bottom: 2px solid black;
+}
+
+.auth-label {
+    margin: 0;
+    margin-top: 15px;
+}
+
+.screen-header {
+    height: 74px;
+    box-shadow: 0 4px 2px -2px grey;
+
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.screen-header * {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0;
+}
+
+.screen-header img {
+    width: 66px;
+    margin-bottom: 2px;
+    border-radius: 100%;
+    margin-left: 15px;
+}
+
+.screen-header i {
+    font-size: 36px;
+}
+
+.screen-header-button {
+    vertical-align: baseline;
+    width: 74px;
+    text-align: center;
+    height: 74px;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+}
+
+.screen-header-button[now='1'] {
+    background: #efefef;
+}
+
+.screen-header-button:hover {
+    box-shadow: 0 0 5px 0;
+}
+
+.screen-header-button img {
+    width: 35px;
+    background-size: cover;
+    border-radius: 0;
+    margin: 0;
+}
+
+.screen-header h1 {
+    font-size: 24px;
+    margin-left: 10px;
+    margin-right: 20px;
+
+}
+
+.screen-header-right {
+    float: right;
+}
+
+.screen-header-right button:hover {
+    box-shadow: -2px 0 3px 0;
+}
+
+.screen-column {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#vk-songs {
+    margin-top: 1px;
+}
+
+.track {
+    height: 50px;
+    position: relative;
+    text-align: left;
+    border-top: 1px solid gainsboro;
+    border-bottom: 1px solid gainsboro;
+    padding: 10px;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+}
+
+.track:hover {
+    box-shadow: 0 0 5px 0;
+    z-index: 999;
+}
+
+.track * {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.track-cover {
+    width: 50px;
+    background: #e4e4e4;
+    border-radius: 10px;
+
+    margin-left: 15px;
+}
+
+.track-cover[src='img/no_cover.svg'] {
+    padding: 10px;
+    width: 30px;
+}
+
+.track-title {
+
+}
+
+.track-title * {
+    display: block;
+    font-size: 16px;
+    margin: 0;
+    margin-left: 10px;
+    cursor: default;
+
+}
+
+.track-title h2 {
+    margin-bottom: 7px;
+}
+
+.track-title h3 {
+    color: #8c8c8c;
+    font-weight: 400;
+}
+
+.track-buttons {
+    position: absolute;
+    height: 40px;
+    top: 15px;
+    display: none;
+    right: 15px;
+}
+
+.track-button {
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    width: 40px;
+    border-radius: 15px;
+    margin-left: 10px;
+}
+
+.track-button:hover:enabled {
+    background: #e6e6e6;
+    color: #6f99c8;
+}
+
+
+.track-duration {
+    position: absolute;
+    right: 15px;
+    top: 40%;
+    color: #585858;
+}
+
+
+.queue-track {
+    height: 50px;
+    padding: 0 10px;
+    border-bottom: 1px solid #cecece;
+}
+
+.queue-track:hover {
+    background: #f1f1f1;
+}
+
+.queue-track * {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.queue-track h1 {
+    margin: 0;
+    cursor: default;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 28px);
+    margin-top: 15px;
+}
+.queue-track-buttons {
+    float: right;
+    margin-top: 12px;
+}
+
+.queue-track-buttons button {
+    font-size: 22px;
+}
+
+.queue-track-listened {
+    background: #f7f7f7;
+}
+
+.queue-track-current {
+    box-shadow: 0 0 7px 0;
+    z-index: 999;
+}
+
+button[act='1'] {
+    color: black;
+}
+
+.screen-text-header {
+    text-align: left;
+    margin-top: 5px;
+}
+
+.screen-text-header * {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.screen-text-header h1 {
+    margin: 0;
+    font-size: 28px;
+    margin-left: 5px;
+
+}
+
+.playlists {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 15px;
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.playlist {
+    width: 175px;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 10px;
+    border: 1px solid #b1b1b1;
+    border-radius: 15px;
+    margin-right: 20px;
+    transition: 0.5s box-shadow;
+    transition: 0.3s border;
+}
+
+.playlist:hover {
+    box-shadow: 0 0 5px 0;
+    border: 1px solid transparent;
+}
+
+.playlist-cover {
+    width: 100%;
+    display: grid;
+    border-radius: 15px;
+}
+
+.playist-cover {
+
+    border-radius: 15px;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    text-align: center;
+
+}
+
+.playist-cover img {
+    width: 100%;
+}
+
+.playist-cover img:first-child {
+    border-top-left-radius: 15px;
+}
+
+.playist-cover img:last-child {
+    border-bottom-right-radius: 15px;
+}
+
+.playist-cover img:nth-child(2) {
+    border-top-right-radius: 15px;
+}
+.playist-cover img:nth-child(3) {
+    border-bottom-left-radius: 15px;
+}
+
+.playlist h2 {
+    font-size: 16px;
+    margin: 0;
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playlist p {
+    margin: 0;
+    text-align: left;
+    font-size: 14px;
+    color: #737373;
+}
+
+.playlist-cover-container {
+    position: relative;
+    text-align: center;
+}
+
+.playlist-overlay {
+    text-align: center;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: calc(100%);
+    background: #0000009e;
+    border-radius: 15px;
+    display: none;
+}
+
+
+.playlist-cover-container:hover .playlist-overlay {
+    display: block;
+}
+
+.playlist-buttons button {
+    margin-left: 0;
+}
+
+.playlist-play-button {
+    margin: 0;
+    margin-top: 40%;
+    vertical-align: middle;
+    color: white;
+    transition: 0.3s font-size;
+    font-size: 32px;
+}
+
+.playlist-play-button:hover:enabled {
+    color: #d0d0d0;
+    cursor: pointer;
+}
+
+.plv-back {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000ad;
+    text-align: center;
+}
+
+.plv-container {
+    position: relative;
+    text-align: left;
+    width: 50%;
+    margin: auto;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    background: white;
+    height: calc(100% - 102px);
+    border: 1px solid black;
+
+}
+
+.plv-top {
+    position: relative;
+    height: 150px;
+    borders-bottom: 1px solid black;
+
+}
+
+.plv-top > * {
+    display: inline-block;
+}
+
+.plv-texts {
+    margin-left: 10px;
+    margin-top: 10px;
+    vertical-align: top;
+    width: calc(100% - 195px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.plv-texts h1 {
+    margin: 0;
+
+}
+
+.plv-title {
+    font-size: 26px;
+    margin-bottom: 15px !important;
+}
+
+.plv-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 36px;
+}
+
+.plv-description {
+    font-size: 16px;
+    white-space: normal;
+
+    white-space: normal!important;
+    overflow: visible!important;
+    overflow-wrap: break-word;
+}
+
+.plv-thumb {
+    width: 150px!important;
+    height: 150px;
+    border-radius: 0;
+    margin-bottom: 0 !important;
+}
+
+.plv-tracks {
+    position: relative;
+    overflow-y: auto;
+    height: calc(94% - 151px);
+    box-shadow: inset 0 0 5px 0;
+    border-top: 1px solid #0000007d;
+    border-bottom: 1px solid #0000007d;
+}
+
+.plv-buttons {
+    z-index:1100;
+    background: white;
+    width: calc(100% - 14px);
+    padding: 0 7px;
+}
+
+.plv-buttons button {
+    margin: 4px;
+}
+
+.search-row {
+    margin-top: 15px;
+}
+
+.search-row * {
+    vertical-align: middle;
+}
+
+
+.search-input {
+    width: 75%;
+    border: none;
+    padding: 5px 10px;
+    font-size: 20px;
+    border-radius: 30px;
+    outline: none;
+    box-shadow: 0 0 5px 0;
+    font-family: Arial;
+}
+
+.run-search {
+    border: 1px solid black;
+    padding: 7px 15px;
+    cursor: pointer;
+    border-radius: 50px;
+    transition: 0.3s background;
+    color: black;
+    margin-left: 10px;
+}
+
+.run-search:hover:enabled {
+    color: white;
+    background: black;
+}
