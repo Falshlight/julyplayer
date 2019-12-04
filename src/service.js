@@ -15,23 +15,54 @@ String.prototype.format = function () {
 };
 
 const TOKEN_URL = 'http://62.109.15.27/bots/vk_auth/vk-audio-token/src/cli/get.php?login=%s&password=%s';
-function vk_auth(login, password, callback) {
-  $.get(TOKEN_URL.replace('%s', login).replace('%s', password)).done(function (data) {
+function vk_auth(login, password, tfa, callback) {
+  var url = TOKEN_URL.replace('%s', login).replace('%s', password);
+  if (tfa) url += '&code='+tfa;
+  $.get(url).done(function (data) {
     var n = data.search(/Token: \w*$/g);
     if (n !== -1) {
       data = data.slice(n);
       var token = data.replace('Token: ', '').trim();
       if (token.length) {
         callback(token);
-      } else callback(null);
-    } else callback(null);
+      } else {
+        callback(null);
+      }
+    } else {
+      var n = data.search(/SMS/g);
+      if (n !== -1) {
+        callback('2fa');
+      } else {
+        callback(null);
+      }
+    }
   });
+}
+
+function write_data(data) {
+  let username = process.env.username || process.env.user || process.env.USER;
+  var path = '/home/'+username+'/.julyplayer/data.json';
+  if (process.platform === 'win32') path = 'C:\\Users\\'+username+'\\AppData\\Roaming\\JulyPlayer\\data.json';
+
+  fs.writeFileSync(path, JSON.stringify(data));
+}
+
+function get_data() {
+  let username = process.env.username || process.env.user || process.env.USER;
+  console.log(username);
+  var dir = '/home/'+username+'/.julyplayer/';
+  if (process.platform === 'win32') dir = 'C:\\Users\\'+username+'\\AppData\\Roaming\\JulyPlayer\\';
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+  var path = dir + 'data.json';
+  if (!fs.existsSync(path)) fs.writeFileSync(path, `{"vk":"1","ym":":","am":""}`);
+
+  var data = fs.readFileSync(path, 'utf8');
+  return JSON.parse(data);
 }
 
 
 function checkServices() {
-  var data = fs.readFileSync(__dirname+'/data.json', 'utf8');
-  data = JSON.parse(data);
+  var data = get_data();
 
   ymapi = new YandexMusicApi();
   var s = data.ym.split(':');
@@ -95,7 +126,7 @@ function loadService(service_name, data) {
 
 var authorizeHtml = `<div class='auth-div'>
 <h1 class="auth-header">Авторизация</h1>
-<div class="auth-inputs">
+<div class="auth-inputs" id="{0}-auth-inputs">
 <p class="auth-label">Логин</p>
 <input type="text" class="text-input auth-input" id="{0}-login">
 <p class="auth-label">Пароль</p>
@@ -163,13 +194,20 @@ var templates = { ym: `<div style="display: none" id="ym-token">{3}</div>
 
 class ServiceLogin {
   static vk_do_login() {
-    vk_auth($("#vk-login").val(), $("#vk-password").val(), function (token) {
+    vk_auth($("#vk-login").val(), $("#vk-password").val(), $("#vk-2fa").val(), function (token) {
       if (token) {
-        var data = fs.readFileSync(__dirname + '/data.json', 'utf8');
-        data = JSON.parse(data);
-        data.vk = token;
-        fs.writeFileSync(__dirname + '/data.json', JSON.stringify(data));
-        loadService('vk', data.vk);
+        if (token === '2fa') {
+          if ($("#vk-2fa").length) {
+            $("#vk-2fa").remove();
+            $(".vk-tfa-label").remove();
+          }
+          $("#vk-auth-inputs").append(`<p class="auth-label vk-tfa-label">2FA Код</p><input type="text" class="text-input auth-input" id="vk-2fa">`);
+        } else {
+          var data = get_data();
+          data.vk = token;
+          write_data(data);
+          loadService('vk', data.vk);
+        }
       } else {
         $("#vk-auth-button").addClass('auth-error-button').css('border-color', '#FF265E');
         setTimeout(function () {$("#vk-auth-button").removeClass('auth-error-button').css('border-color', colors.vk);}, 1000);
@@ -177,20 +215,18 @@ class ServiceLogin {
     });
   }
   static vk_exit() {
-    var data = fs.readFileSync(__dirname+'/data.json', 'utf8');
-    data = JSON.parse(data);
+    var data = get_data();
     data.vk = '123';
-    fs.writeFileSync(__dirname+'/data.json', JSON.stringify(data));
+    write_data(data);
     loadService('vk', null);
   }
 
   static ym_do_login() {
     ymapi = new YandexMusicApi();
     ymapi.init({username: $("#ym-login").val(), password: $("#ym-password").val()}).then(function (token) {
-      var data = fs.readFileSync(__dirname + '/data.json', 'utf8');
-      data = JSON.parse(data);
+      var data = get_data();
       data.ym = token.uid+':'+token.access_token;
-      fs.writeFileSync(__dirname + '/data.json', JSON.stringify(data));
+      write_data(data);
       loadService('ym', data.ym);
     }).catch(function (err){
       $("#ym-auth-button").addClass('auth-error-button').css('border-color', '#FF265E');
@@ -199,10 +235,9 @@ class ServiceLogin {
   }
 
   static ym_exit() {
-    var data = fs.readFileSync(__dirname+'/data.json', 'utf8');
-    data = JSON.parse(data);
+    var data = get_data();
     data.ym = ':';
-    fs.writeFileSync(__dirname+'/data.json', JSON.stringify(data));
+    write_data(data);
     loadService('ym', null);
   }
 }

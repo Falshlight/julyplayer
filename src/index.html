@@ -304,9 +304,10 @@
           } catch (e) {
             sound.stop();
           }
-        } else {
-	    new window.Notification('Сейчас играет', {'body': $("#cs-title").text(), icon: $("#cs-thumbnail").attr('src')});
-	}
+        }
+      },
+      onload: function () {
+        new window.Notification('Сейчас играет', { 'body': $("#cs-title").text(), icon: $("#cs-thumbnail").attr('src') })
       },
       onend: function () {
         if (sound.repeat) {
@@ -414,7 +415,7 @@
 
   <script>
     // Работа с очередью и загрузка треков
- 
+
     function do_shuffle(array) {
       array.sort(() => Math.random() - 0.5);
     }
@@ -548,7 +549,7 @@
 </div>`;
 
     // Работа со всплывающим плейлистом
- 
+
     function plv_close() {
       $("#plv").remove();
     }

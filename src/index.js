@@ -4,20 +4,18 @@ const path = require('path');
 const electron = require('electron');
 const { autoUpdater } = require("electron-updater");
 
-autoUpdater.checkForUpdatesAndNotify()
+autoUpdater.checkForUpdatesAndNotify();
 
 const assetsDirectory = path.join(__dirname, 'img');
 
-if (require('electron-squirrel-startup')) { 
+if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
 let mainWindow;
 let tray;
 let trayTemplate = [{ label: 'Развернуть', click: restoreFromTray },
-  {label: 'Сейчас играет:'},
-  {label: 'Ничего не играет'},
-  {label: 'Продолжить', click: function () {mainWindow.webContents.executeJavaScript(`toggle_audio()`);}},
+  {label: 'Пауза/Продолжить', click: function () {mainWindow.webContents.executeJavaScript(`toggle_audio()`);}},
   {type: "separator"},
   { label: 'Выйти',
     click: () => {
@@ -129,6 +127,8 @@ function check_tray_value(value, index) {
 		}
 }
 
+
+// doesn't work well
 function check_tray() {
 	if (!mainWindow) return;
 	mainWindow.webContents.executeJavaScript(`[$("#cs-title").text(), $("#audio-control i").hasClass('fa-play')]`, function (result) {
@@ -142,7 +142,7 @@ function check_tray() {
 }
 
 app.on('ready', () => {
-setTimeout(check_tray, 1500);
+//setTimeout(check_tray, 1500);
 });
 
 
