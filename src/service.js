@@ -86,10 +86,11 @@ function checkServices() {
 }
 
 var colors = {vk: '#5080b8', ym: '#fecc0b', am: '#000'};
+var service_full_names = {vk: "Вконтакте", ym: "Яндекс.Музыка", am: "Apple Music"};
 function loadService(service_name, data) {
   if (!data) {
     console.log(service_name, data);
-    $("#"+service_name+"-screen").html(authorizeHtml.format(service_name, colors[service_name]));
+    $("#"+service_name+"-screen").html(authorizeHtml.format(service_name, colors[service_name], service_full_names[service_name]));
     return true;
   } else {
     if (service_name === 'vk') {
@@ -125,7 +126,7 @@ function loadService(service_name, data) {
 }
 
 var authorizeHtml = `<div class='auth-div'>
-<h1 class="auth-header">Авторизация</h1>
+<h1 class="auth-header">Авторизация {2}</h1>
 <div class="auth-inputs" id="{0}-auth-inputs">
 <p class="auth-label">Логин</p>
 <input type="text" class="text-input auth-input" id="{0}-login">
